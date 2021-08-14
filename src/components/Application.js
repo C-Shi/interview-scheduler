@@ -1,29 +1,62 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import axios from 'axios';
 
 import "components/Application.scss";
-import DayList from 'components/DayList'
+import DayList from 'components/DayList';
+import Appointment from "./Appointment";
+
+const appointments = [
+  {
+    id: 1,
+    time: "12pm",
+  },
+  {
+    id: 2,
+    time: "1pm",
+    interview: {
+      student: "Lydia Miller-Jones",
+      interviewer: {
+        id: 1,
+        name: "Sylvia Palmer",
+        avatar: "https://i.imgur.com/LpaY82x.png",
+      }
+    }
+  },
+  {
+    id: 3,
+    time: "2pm",
+    interview: {
+      student: "John Smith",
+      interviewer: {
+        id: 1,
+        name: "Cohana Roy",
+        avatar: "https://i.imgur.com/FK8V841.jpg",
+      }
+    }
+  },
+  {
+    id: 4,
+    time: "3pm",
+  },
+  {
+    id: 5,
+    time: "4pm",
+  },
+  {
+    id: 6,
+    time: "5pm",
+  },
+];
 
 export default function Application(props) {
-  const [state, setState] = useState({
-    days: [
-      {
-        id: 1,
-        name: "Monday",
-        spots: 2,
-      },
-      {
-        id: 2,
-        name: "Tuesday",
-        spots: 5,
-      },
-      {
-        id: 3,
-        name: "Wednesday",
-        spots: 0,
-      },
-    ],
-    day: 'Monday'
-  })
+  const [days, setDays] = useState([]);
+  const [day, setDay] = useState("");
+
+  useEffect(() => {
+    axios.get('/api/days').then(({ data }) => {
+      setDays(data)
+    })
+  }, [])
 
   return (
     <main className="layout">
@@ -35,7 +68,7 @@ export default function Application(props) {
         />
         <hr className="sidebar__separator sidebar--centered" />
         <nav className="sidebar__menu">
-          <DayList {...state} setDay={(day) => setState({...state, day})}/>
+          <DayList day={day} days={days} setDay={setDay}/>
         </nav>
         <img
           className="sidebar__lhl sidebar--centered"
@@ -45,6 +78,7 @@ export default function Application(props) {
       </section>
       <section className="schedule">
         {/* Replace this with the schedule elements durint the "The Scheduler" activity. */}
+        {appointments.map((a, i) => <Appointment key={(i === appointments.length - 1) ? 'last' : a.id}  {...a} />)}
       </section>
     </main>
   );
