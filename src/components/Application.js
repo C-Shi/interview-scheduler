@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { getAppointmentsForDay } from "helpers/selectors";
+import { getAppointmentsForDay, getInterview } from "helpers/selectors";
 import axios from 'axios';
 
 import "components/Application.scss";
@@ -58,6 +58,17 @@ export default function Application(props) {
   })
 
   const dailyAppointments = getAppointmentsForDay(state, state.day);
+  const schedule = dailyAppointments.map(appointment => {
+    const interview = getInterview(state, appointment.interview);
+    return (
+      <Appointment
+        key={appointment.id}
+        id={appointment.id}
+        time={appointment.time}
+        interview={interview}
+      ></Appointment>
+    )
+  })
 
   const setDay = day => setState(prev => ({...prev, day}));
   const setDays = days => setState(prev => ({...prev, days}));
@@ -93,8 +104,7 @@ export default function Application(props) {
         />
       </section>
       <section className="schedule">
-        {/* Replace this with the schedule elements durint the "The Scheduler" activity. */}
-        {dailyAppointments.map((a, i) => <Appointment key={(i === dailyAppointments.length - 1) ? 'last' : a.id}  {...a} />)}
+        {schedule}
       </section>
     </main>
   );
