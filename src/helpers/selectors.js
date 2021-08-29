@@ -19,3 +19,7 @@ export const getInterview = function (state, interview) {
     interviewer: state.interviewers[interview.interviewer]
   }
 }
+
+export const getInterviewersForDay = function (state) {
+  return Object.values(state.interviewers)
+}

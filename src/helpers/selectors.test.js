@@ -1,4 +1,4 @@
-import { getAppointmentsForDay, getInterview} from "helpers/selectors";
+import { getAppointmentsForDay, getInterview, getInterviewersForDay} from "helpers/selectors";
 
 const state = {
   days: [
@@ -86,3 +86,8 @@ test("getInterview returns null if no interview is booked", () => {
   const result = getInterview(state, state.appointments["2"].interview);
   expect(result).toBeNull();
 });
+
+test("getInterviewersForDay returns array of interviewers", () => {
+  const result = getInterviewersForDay(state);
+  expect(Array.isArray(result)).toBe(true);
+})
