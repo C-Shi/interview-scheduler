@@ -1,54 +1,23 @@
-import React, { useState, useEffect } from "react";
-import { getAppointmentsForDay, getInterview, getInterviewersForDay } from "helpers/selectors";
+import React, { useEffect } from "react";
 import axios from 'axios';
+import useApplicationData from "../hooks/useApplicationData";
+import { getAppointmentsForDay, getInterview, getInterviewersForDay } from "helpers/selectors";
 
 import "components/Application.scss";
 import DayList from 'components/DayList';
 import Appointment from "./Appointment";
 
 export default function Application(props) {
-  const [state, setState] = useState({
-    days: [],
-    day: 'Monday',
-    appointments: [],
-    interviewers: []
-  })
-
+  const {
+    state,
+    setState,
+    bookInterview,
+    deleteInterview,
+    setDays,
+    setDay
+  } = useApplicationData();
+  
   const dailyAppointments = getAppointmentsForDay(state, state.day);
-
-  const bookInterview = (id, interview) => {
-    const appointment = {
-      ...state.appointments[id],
-      interview: { ...interview }
-    }
-
-    const appointments = {
-      ...state.appointments,
-      [id]: appointment
-    }
-
-    return axios.put(`/api/appointments/${id}`, appointment)
-    .then(res => {
-      setState(prev =>  ({...prev, appointments}))
-    })
-  }
-
-  const deleteInterview = (id) => {
-    const appointment = {
-      ...state.appointments[id],
-      interview: null
-    }
-
-    const appointments = {
-      ...state.appointments,
-      [id]: appointment
-    }
-
-    return axios.delete(`/api/appointments/${id}`)
-    .then(res => {
-      setState(prev => ({...prev, appointments}))
-    })
-  }
 
   const schedule = dailyAppointments.map(appointment => {
     const interview = getInterview(state, appointment.interview);
@@ -65,9 +34,6 @@ export default function Application(props) {
       ></Appointment>
     )
   })
-
-  const setDay = day => setState(prev => ({...prev, day}));
-  const setDays = days => setState(prev => ({...prev, days}));
 
   useEffect(() => {
     Promise.all([
