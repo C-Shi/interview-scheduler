@@ -34,6 +34,7 @@ export default function Appointment (props) {
     transition(SAVING);
     props.bookInterview(props.id, interview)
     .then(() => transition(SHOW))
+    .then(() => props.updateSpots('book'))
     .catch(() => transition(ERROR_SAVE, true))
   }
 
@@ -41,6 +42,7 @@ export default function Appointment (props) {
     transition(DELETING)
     props.deleteInterview(props.id)
     .then(() => transition(EMPTY))
+    .then(() => props.updateSpots('cancel'))
     .catch(() => transition(ERROR_DELETE, true));
   }
 
