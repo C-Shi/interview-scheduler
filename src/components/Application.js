@@ -10,13 +10,25 @@ import Appointment from "./Appointment";
 export default function Application(props) {
   const {
     state,
-    setState,
+    initializeState,
     bookInterview,
     deleteInterview,
     updateSpots,
     setDays,
     setDay
   } = useApplicationData();
+
+  useEffect(() => {
+    Promise.all([
+      axios.get(process.env.REACT_APP_GET_DAYS),
+      axios.get(process.env.REACT_APP_GET_APPOINTMENTS),
+      axios.get(process.env.REACT_APP_GET_INTERVIEWERS)
+    ])
+    .then(([days, appointments, interviewers]) => {
+      initializeState(days.data, appointments.data, interviewers.data)
+      setDays(days.data);
+    })
+  }, [])
 
   const dailyAppointments = getAppointmentsForDay(state, state.day);
 
@@ -36,18 +48,6 @@ export default function Application(props) {
       ></Appointment>
     )
   })
-
-  useEffect(() => {
-    Promise.all([
-      axios.get(process.env.REACT_APP_GET_DAYS),
-      axios.get(process.env.REACT_APP_GET_APPOINTMENTS),
-      axios.get(process.env.REACT_APP_GET_INTERVIEWERS)
-    ])
-    .then(([days, appointments, interviewers]) => {
-      setState(prev => ({...prev, days: days.data, appointments: appointments.data, interviewers: interviewers.data}))
-      setDays(days.data);
-    })
-  }, [])
 
   return (
     <main className="layout">

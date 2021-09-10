@@ -1,9 +1,30 @@
-import React, { useState } from "react";
+import React, { useState, useReducer } from "react";
 import axios from 'axios';
 import { getAppointmentsForDay } from '../helpers/selectors';
 
 export default function useApplicationData () {
-  const [state, setState] = useState({
+  const BOOK = 'BOOK';
+  const DELETE = 'DELETE';
+  const DAY = 'DAY';
+  const DAYS = 'DAYS';
+  const INITIALIZE = 'INITIALIZE';
+  
+  const [state, dispatch] = useReducer(function(state, action) {
+    switch (action.type) {
+      case BOOK:
+        return {...state, appointments: action.payload };
+      case DELETE:
+        return {...state, appointments: action.payload };
+      case DAY:
+        return {...state, day: action.payload };
+      case DAYS:
+        return {...state, days: action.payload };
+      case INITIALIZE:
+        return {...state, ...action.payload };
+      default:
+        throw new Error();
+    }
+  }, {
     days: [],
     day: 'Monday',
     appointments: [],
@@ -23,7 +44,7 @@ export default function useApplicationData () {
 
     return axios.put(`/api/appointments/${id}`, appointment)
     .then(res => {
-      setState(prev =>  ({...prev, appointments}))
+      dispatch({ type: BOOK, payload: appointments })
     })
   }
 
@@ -40,14 +61,13 @@ export default function useApplicationData () {
 
     return axios.delete(`/api/appointments/${id}`)
     .then(res => {
-      setState(prev => ({...prev, appointments}))
+      dispatch({ type: DELETE, payload: appointments })
     })
   }
 
   const updateSpots = (action = 'book') => {
     const dailyAppointments = getAppointmentsForDay(state, state.day);
     const newSpot = dailyAppointments.reduce((accu, curr) => {
-      console.log(accu, curr)
       return accu + (curr.interview ? 0 : 1);
     }, action === 'book' ? -1 : 1);
 
@@ -61,12 +81,18 @@ export default function useApplicationData () {
     setDays(newDays);
   }
 
-  const setDay = day => setState(prev => ({...prev, day}));
-  const setDays = days => setState(prev => ({...prev, days}));
+  const setDay = day => dispatch({ type: DAY, payload: day});
+  const setDays = days => dispatch({ type: DAYS, payload: days });
+  const initializeState = (days, appointments, interviewers) => {
+    dispatch({ 
+      type: INITIALIZE, 
+      payload: { days, appointments, interviewers } 
+    })
+  };
 
   return {
     state,
-    setState,
+    initializeState,
     bookInterview,
     deleteInterview,
     updateSpots,
