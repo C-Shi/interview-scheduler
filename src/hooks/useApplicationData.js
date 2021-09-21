@@ -1,4 +1,4 @@
-import React, { useState, useReducer } from "react";
+import React, { useEffect, useReducer } from "react";
 import axios from 'axios';
 import { getAppointmentsForDay } from '../helpers/selectors';
 
@@ -37,32 +37,11 @@ export default function useApplicationData () {
       interview: { ...interview }
     }
 
-    const appointments = {
-      ...state.appointments,
-      [id]: appointment
-    }
-
     return axios.put(`/api/appointments/${id}`, appointment)
-    .then(res => {
-      dispatch({ type: BOOK, payload: appointments })
-    })
   }
 
   const deleteInterview = (id) => {
-    const appointment = {
-      ...state.appointments[id],
-      interview: null
-    }
-
-    const appointments = {
-      ...state.appointments,
-      [id]: appointment
-    }
-
     return axios.delete(`/api/appointments/${id}`)
-    .then(res => {
-      dispatch({ type: DELETE, payload: appointments })
-    })
   }
 
   const updateSpots = (action = 'book') => {
@@ -90,13 +69,44 @@ export default function useApplicationData () {
     })
   };
 
+  useEffect(() => {
+    Promise.all([
+      axios.get(process.env.REACT_APP_GET_DAYS),
+      axios.get(process.env.REACT_APP_GET_APPOINTMENTS),
+      axios.get(process.env.REACT_APP_GET_INTERVIEWERS)
+    ])
+    .then(([days, appointments, interviewers]) => {
+      initializeState(days.data, appointments.data, interviewers.data)
+      setDays(days.data);
+    })
+  }, [])
+
+  useEffect(() => {
+    const ws = new WebSocket(process.env.REACT_APP_WEBSOCKET_URL);
+    ws.onmessage = function ({ data }) {
+      if (state.days.length === 0) {
+        return;
+      }
+      const { id, interview } = JSON.parse(data);
+      const appointment = {
+        ...state.appointments[id],
+        interview: interview ? { ...interview } : null
+      }
+      const appointments = {
+        ...state.appointments,
+        [id]: appointment
+      }
+      dispatch({ type: (interview ? BOOK : DELETE), payload: appointments })
+      updateSpots((interview ? 'book' : 'cancel'))
+    } 
+  })
+
   return {
     state,
-    initializeState,
     bookInterview,
     deleteInterview,
     updateSpots,
     setDays,
-    setDay
+    setDay,
   }
 }
