@@ -4,6 +4,7 @@ import Button from 'components/Button';
 
 export default function Form (props) {
   const [name, setName ] = useState(props.name || '');
+  const [error, setError ] = useState("");
   const [interviewer, setInterviewer] = useState(props.interviewer || null);
 
   const reset = () => {
@@ -17,7 +18,21 @@ export default function Form (props) {
   }
 
   const save = () => {
-    props.onSave(name, interviewer.id)
+    if (!name) {
+      setError("Student name cannot be blank");
+      return ;
+    }
+    const id = interviewer ? interviewer.id : null
+    props.onSave(name, id)
+  }
+
+  const onInterviewerChangeHandler = (id) => {
+    setInterviewer(props.interviewers.find(i => i.id === id))
+  }
+
+  const onStudentChangeHandler = (e) => {
+    setError(false);
+    setName(e.target.value)
   }
 
   return (
@@ -30,13 +45,15 @@ export default function Form (props) {
             type="text"
             placeholder="Enter Student Name"
             value={name}
-            onChange={(e) => setName(e.target.value)}
+            onChange={(e) => onStudentChangeHandler(e)}
             /*
               This must be a controlled component
             */
+           data-testid="student-name-input"
           />
+          { error ? <p style={{color: 'red'}}>{error}</p> : ""}
         </form>
-        <InterviewerList interviewers={props.interviewers} value={interviewer} onChange={(id) => setInterviewer(props.interviewers.find(i => i.id === id))} />
+        <InterviewerList interviewers={props.interviewers} value={interviewer} onChange={(id) => onInterviewerChangeHandler(id)} />
       </section>
       <section className="appointment__card-right">
         <section className="appointment__actions">
